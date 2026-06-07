@@ -1,0 +1,222 @@
+@import "../styles/fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fill-0: #ffffff;
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: #171717;
+  --border: rgba(0, 0, 0, 0.1);
+  --ring: rgba(0, 0, 0, 0.2);
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  /** هامش أفقي موحّد للنافبار وجميع أقسام الموقع */
+  --sinan-site-padding-x: clamp(1rem, 1.5vw + 0.5rem, 4rem);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    cursor: none;
+    font-family: "DIN Arabic", "DINNextLTArabic", "Tajawal", -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 300;
+  }
+
+  html {
+    height: 100%;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    font-size: var(--font-size);
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    scroll-padding-top: 50px;
+  }
+
+  body {
+    height: 100%;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    margin: 0;
+    background: radial-gradient(circle at 20% 30%, #3a3a3a 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, #2c2c2c 0%, transparent 40%),
+      linear-gradient(135deg, #1e1e1e, #2a2a2a);
+    color: var(--foreground);
+    cursor: none;
+    font-weight: 300 !important;
+  }
+
+  /* Explicit shell so layout height works regardless of Next.js body children order */
+  #sinan-root.sinan-app-shell {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  [lang="ar"] *,
+  [lang="ar"] {
+    font-family: "DIN Arabic", "DINNextLTArabic", "Tajawal", -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+  h4 {
+    font-size: var(--text-base);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+  p,
+  span,
+  label,
+  button,
+  input,
+  a,
+  div,
+  textarea,
+  select {
+    font-weight: 300;
+  }
+  label,
+  button,
+  input {
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  .sinan-site-px {
+    padding-left: var(--sinan-site-padding-x);
+    padding-right: var(--sinan-site-padding-x);
+  }
+  .sinan-site-pl {
+    padding-left: var(--sinan-site-padding-x);
+  }
+  .sinan-site-pr {
+    padding-right: var(--sinan-site-padding-x);
+  }
+
+  /* طبقات Figma (Dynamics/Marine): عزل عن قواعد * / div العامة */
+  .sinan-figma-sector-logo {
+    isolation: isolate;
+    color: #fff;
+  }
+  .sinan-figma-sector-logo svg {
+    display: block;
+    overflow: visible;
+  }
+
+  /**
+   * هيرو الموبايل: تدوير الخلفية والمضلعات 90° لتصبح بالطول (عمودية)
+   * وتملأ شاشة الهاتف بشكل أفضل.
+   */
+  @media (max-width: 767px) {
+    .hero-mobile-landscape-frame {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 0;
+      width: 100vh;
+      height: 100vw;
+      max-width: 100vh;
+      max-height: 100vw;
+      transform: translate(-50%, -50%) rotate(90deg);
+      transform-origin: center center;
+      pointer-events: none;
+    }
+
+    .hero-mobile-landscape-inner {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+@keyframes rotate360 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes strip-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
+.animate-strip-scroll-30 {
+  animation: strip-scroll 30s linear infinite;
+  direction: ltr !important;
+}
+
+.animate-strip-scroll-60 {
+  animation: strip-scroll 60s linear infinite;
+  direction: ltr !important;
+}
+
+.app-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(42, 42, 42, 0.35) rgba(0, 0, 0, 0.06);
+}
+
+.app-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.app-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 9999px;
+}
+
+.app-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(42, 42, 42, 0.35);
+  border-radius: 9999px;
+}
+
+.app-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(42, 42, 42, 0.5);
+}
+
+.font-weight-900 {
+  font-weight: 900 !important;
+}

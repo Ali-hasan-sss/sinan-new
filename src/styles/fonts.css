@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+
+/* DIN Arabic – يُحمّل من النظام فقط؛ إن لم يتوفر يُستخدم Tajawal من القائمة التالية */
+@font-face {
+  font-family: 'DIN Arabic';
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local('DIN Next LT Arabic'),
+    local('DIN Next LT Arabic Light'),
+    local('DIN Next LT Arabic Medium'),
+    local('DIN Next LT Arabic Bold'),
+    local('FF DIN Arabic'),
+    local('DIN Arabic');
+}
+
+@font-face {
+  font-family: 'DINNextLTArabic';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local('DIN Next LT Arabic Light'),
+    local('DIN Arabic'),
+    local('Tajawal Light'),
+    local('Tajawal');
+}
