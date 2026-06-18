@@ -17,7 +17,7 @@ export function SeoJsonLd() {
         name: SITE_NAME_EN,
         alternateName: [SITE_NAME_AR, "Sinan"],
         url: base,
-        logo: `${base}/favicon.png`,
+        logo: `${base}/logo/black_corsur_logo.png`,
         image: `${base}/logo/logo_english_ondark.png`,
         description: SEO_DESCRIPTION_EN,
         areaServed: {

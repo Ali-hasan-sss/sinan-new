@@ -79,22 +79,7 @@ export default function ContactPage() {
               {t.contact.title}
             </motion.h1>
             <div className="space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-5">
-              <motion.div
-                className="flex-shrink-0"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <p
-                  className="text-white/95 whitespace-pre-line text-sm sm:text-base md:text-lg lg:text-[clamp(1.05rem,0.95rem+0.28vw,1.45rem)] xl:text-[clamp(1.15rem,1.05rem+0.32vw,1.55rem)] leading-relaxed"
-                  style={{
-                    fontFamily: "DIN Arabic, sans-serif",
-                    lineHeight: "1.45",
-                  }}
-                >
-                  {t.contact.address}
-                </p>
-              </motion.div>
+             
               <motion.div
                 className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-5 py-2 sm:py-0"
                 initial={{ opacity: 0, x: -20 }}

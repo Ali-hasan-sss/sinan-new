@@ -11,15 +11,61 @@ import landLogo from "@/assets/e148e8f3ba9387c1003e8bf5da1696c2cf8435d8.png";
 import airLogo from "@/assets/cd1779045309571142b8f0a31bf6fab645307577.png";
 import spaceLogo from "@/assets/9dd7749060815e64b5bacb0298a6f6e916d93f98.png";
 import { staticImageSrc } from "@/lib/static-image-src";
-import CommunicationIcon from "@/legacy-imports/IsolationMode-203-171";
-import TrainingIcon from "@/legacy-imports/IsolationMode-203-189";
-import DefenseIcon from "@/legacy-imports/IsolationMode-203-207";
+import { GraduationCap, Radar, Shield, type LucideIcon } from "lucide-react";
 import { SINAN_SITE_PL, SINAN_SITE_PX } from "@/components/site/sinan-app/constants";
 const CENTER_LOGO_URL = `/logo/logo_english_onlight.png`;
 const ROTATING_CIRCLE_URL = `/cercle.png`;
+const ROTATING_CIRCLE_WITHOUT_URL = `/circle_without.png`;
+
+/** مدة دوران الدائرتين الرئيسيتين (ثانية — أكبر = أبطأ) */
+const MAIN_RING_DURATION = 56;
+/** مدد دوائر الحلول الدوارة على سطح المكتب */
+const ORBIT_RING_DURATION_DESKTOP = {
+  space: 17,
+  air: 24,
+  land: 31,
+  maritime: 21,
+  cyber: 28,
+} as const;
+/** مدد دوائر الحلول الدوارة على الموبايل */
+const ORBIT_RING_DURATION_MOBILE = {
+  space: 14,
+  air: 17,
+  land: 21,
+  maritime: 19,
+  cyber: 16,
+} as const;
 
 const CANVAS_W = 1300;
 const CANVAS_H = 900;
+
+function SolutionOptionIcon({
+  icon: Icon,
+  variant = "desktop",
+}: {
+  icon: LucideIcon;
+  variant?: "desktop" | "mobile";
+}) {
+  const boxClass =
+    variant === "desktop" ? "w-12 h-12" : "w-8 h-8 sm:w-9 sm:h-9";
+  const iconClass =
+    variant === "desktop" ? "w-7 h-7" : "w-5 h-5 sm:w-5 sm:h-5";
+
+  return (
+    <div
+      className={`${boxClass} flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100 text-gray-900`}
+    >
+      <Icon className={iconClass} strokeWidth={1.75} aria-hidden />
+    </div>
+  );
+}
+
+/** تأخير ظهور الدوائر بعد خط الربط عند تفعيل Defense */
+const CIRCLES_REVEAL_DELAY_MS = 450;
+const CIRCLES_FADE_IN_TRANSITION = {
+  duration: 1.1,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
 
 export default function SolutionsPage() {
   const { t } = useLanguage();
@@ -27,8 +73,38 @@ export default function SolutionsPage() {
     (t.about as { empoweringLines?: string }).empoweringLines?.split("\n") ??
     [];
   const [defenseHovered, setDefenseHovered] = useState(false);
+  const [circlesRevealed, setCirclesRevealed] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [fitScale, setFitScale] = useState(1);
+
+  const activateDefense = () => setDefenseHovered(true);
+  const showConnectingLines = defenseHovered || circlesRevealed;
+
+  useEffect(() => {
+    if (!defenseHovered) return;
+    const timer = window.setTimeout(
+      () => setCirclesRevealed(true),
+      CIRCLES_REVEAL_DELAY_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [defenseHovered]);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          setDefenseHovered(false);
+          setCirclesRevealed(false);
+        }
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -43,6 +119,7 @@ export default function SolutionsPage() {
   }, []);
   return (
     <div
+      ref={rootRef}
       dir="ltr"
       className="w-full h-full min-h-0 relative overflow-hidden flex flex-col"
     >
@@ -78,10 +155,13 @@ export default function SolutionsPage() {
             />
           </div>
           */}
-          {/* نص خلفية كبير في الجهة اليسرى — نفس أسلوب قسم الرؤية والمهمة */}
-          <div
+          {/* نص خلفية كبير في الجهة اليسرى — يظهر مع الدوائر */}
+          <motion.div
             className={`absolute inset-y-0 left-0 flex items-center pointer-events-none ${SINAN_SITE_PL}`}
             style={{ zIndex: 2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: circlesRevealed ? 1 : 0 }}
+            transition={CIRCLES_FADE_IN_TRANSITION}
           >
             <div className="space-y-0.5 lg:space-y-1 max-w-md lg:max-w-xl xl:max-w-2xl">
               {lines.map((line, i) => (
@@ -94,8 +174,15 @@ export default function SolutionsPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
+          <motion.div
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: circlesRevealed ? 1 : 0 }}
+            transition={CIRCLES_FADE_IN_TRANSITION}
+            style={{ pointerEvents: circlesRevealed ? "auto" : "none" }}
+          >
           {/* Rotating Circle 1 - Clockwise — موضع ثابت بالبكسل */}
           <motion.div
             className="absolute"
@@ -108,7 +195,7 @@ export default function SolutionsPage() {
             }}
             animate={{ rotate: 360 }}
             transition={{
-              duration: 32,
+              duration: MAIN_RING_DURATION,
               repeat: Infinity,
               ease: "linear",
             }}
@@ -132,13 +219,13 @@ export default function SolutionsPage() {
             }}
             animate={{ rotate: -360 }}
             transition={{
-              duration: 32,
+              duration: MAIN_RING_DURATION,
               repeat: Infinity,
               ease: "linear",
             }}
           >
             <img
-              src={ROTATING_CIRCLE_URL}
+              src={ROTATING_CIRCLE_WITHOUT_URL}
               alt=""
               className="w-full h-full object-contain"
             />
@@ -194,7 +281,7 @@ export default function SolutionsPage() {
                   style={{ position: "absolute" }}
                   animate={{ rotate: 360 }}
                   transition={{
-                    duration: 10,
+                    duration: ORBIT_RING_DURATION_DESKTOP.space,
                     repeat: Infinity,
                     ease: "linear",
                   }}
@@ -258,7 +345,7 @@ export default function SolutionsPage() {
                   style={{ position: "absolute" }}
                   animate={{ rotate: 360 }}
                   transition={{
-                    duration: 14,
+                    duration: ORBIT_RING_DURATION_DESKTOP.air,
                     repeat: Infinity,
                     ease: "linear",
                   }}
@@ -322,7 +409,7 @@ export default function SolutionsPage() {
                   style={{ position: "absolute" }}
                   animate={{ rotate: 360 }}
                   transition={{
-                    duration: 18,
+                    duration: ORBIT_RING_DURATION_DESKTOP.land,
                     repeat: Infinity,
                     ease: "linear",
                   }}
@@ -386,7 +473,7 @@ export default function SolutionsPage() {
                   style={{ position: "absolute" }}
                   animate={{ rotate: 360 }}
                   transition={{
-                    duration: 12,
+                    duration: ORBIT_RING_DURATION_DESKTOP.maritime,
                     repeat: Infinity,
                     ease: "linear",
                   }}
@@ -450,7 +537,7 @@ export default function SolutionsPage() {
                   style={{ position: "absolute" }}
                   animate={{ rotate: 360 }}
                   transition={{
-                    duration: 16,
+                    duration: ORBIT_RING_DURATION_DESKTOP.cyber,
                     repeat: Infinity,
                     ease: "linear",
                   }}
@@ -495,18 +582,19 @@ export default function SolutionsPage() {
               </span>
             </div>
           </div>
+          </motion.div>
 
-          {/* Connecting Lines — محاذاة طولية: بجانب كلمة Defense — أبعاد ثابتة */}
+          {/* Connecting Lines — يظهر عند الهوفر على Defense ثم تظهر الدوائر */}
           <img
             src={staticImageSrc(connectingLines)}
             alt=""
-            className="absolute z-[7] transition-opacity duration-300 object-left"
+            className="absolute z-[7] transition-opacity duration-500 object-left pointer-events-none"
             style={{
               left: 104,
               top: 368,
               width: 536,
               height: "auto",
-              opacity: defenseHovered ? 1 : 0,
+              opacity: showConnectingLines ? 1 : 0,
             }}
           />
 
@@ -530,13 +618,11 @@ export default function SolutionsPage() {
               {t.solutions.ourSolutions}
             </h2>
             <div
-              className="flex flex-col gap-3 text-black [&_path]:fill-black"
+              className="flex flex-col gap-3 text-black"
               style={{ fontFamily: "DIN Arabic, sans-serif" }}
             >
               <div className="flex items-center gap-4 py-2">
-                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-black [&_path]:fill-black">
-                  <CommunicationIcon />
-                </div>
+                <SolutionOptionIcon icon={Radar} />
                 <div className="text-black leading-tight">
                   <div
                     className="font-bold text-black"
@@ -550,9 +636,7 @@ export default function SolutionsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4 py-2">
-                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-black [&_path]:fill-black">
-                  <TrainingIcon />
-                </div>
+                <SolutionOptionIcon icon={GraduationCap} />
                 <div className="text-black leading-tight">
                   <div
                     className="font-bold text-black"
@@ -565,14 +649,37 @@ export default function SolutionsPage() {
                   </div>
                 </div>
               </div>
-              <div
-                className="flex items-center gap-4 py-2 cursor-default rounded-md transition-all duration-200 hover:bg-gray-100/50 hover:scale-105 origin-left"
-                onMouseEnter={() => setDefenseHovered(true)}
+              <motion.div
+                className="relative flex items-center gap-4 py-2 px-2 cursor-pointer rounded-md transition-colors duration-200 hover:bg-gray-100/50 hover:scale-105 origin-left"
+                onMouseEnter={activateDefense}
+                onClick={activateDefense}
+                animate={
+                  circlesRevealed
+                    ? { scale: 1 }
+                    : { scale: [1, 1.035, 1] }
+                }
+                transition={
+                  circlesRevealed
+                    ? { duration: 0.25 }
+                    : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
+                }
               >
-                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-black [&_path]:fill-black">
-                  <DefenseIcon />
+                {!circlesRevealed && (
+                  <motion.span
+                    aria-hidden
+                    className="absolute inset-0 rounded-md border-2 border-amber-500/50 pointer-events-none"
+                    animate={{ opacity: [0.25, 0.75, 0.25] }}
+                    transition={{
+                      duration: 1.6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                )}
+                <div className="relative z-[1]">
+                  <SolutionOptionIcon icon={Shield} />
                 </div>
-                <div className="text-black leading-tight">
+                <div className="relative z-[1] text-black leading-tight">
                   <div
                     className="font-bold text-black"
                     style={{ fontSize: 16 }}
@@ -583,7 +690,7 @@ export default function SolutionsPage() {
                     {t.solutions.defenseSystems}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -607,11 +714,9 @@ export default function SolutionsPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-20px" }}
                 transition={{ duration: 0.35 }}
-                className="flex flex-col items-center text-center gap-1 p-2 sm:p-2.5 rounded-lg text-black [&_path]:fill-black"
+                className="flex flex-col items-center text-center gap-1 p-2 sm:p-2.5 rounded-lg text-black"
               >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100 text-black [&_path]:fill-black">
-                  <CommunicationIcon />
-                </div>
+                <SolutionOptionIcon icon={Radar} variant="mobile" />
                 <div className="min-w-0">
                   <div className="font-bold text-[10px] sm:text-xs leading-tight text-black truncate">
                     {t.solutions.communication}
@@ -627,11 +732,9 @@ export default function SolutionsPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-20px" }}
                 transition={{ duration: 0.35, delay: 0.05 }}
-                className="flex flex-col items-center text-center gap-1 p-2 sm:p-2.5 rounded-lg text-black [&_path]:fill-black"
+                className="flex flex-col items-center text-center gap-1 p-2 sm:p-2.5 rounded-lg text-black"
               >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100 text-black [&_path]:fill-black">
-                  <TrainingIcon />
-                </div>
+                <SolutionOptionIcon icon={GraduationCap} variant="mobile" />
                 <div className="min-w-0">
                   <div className="font-bold text-[10px] sm:text-xs leading-tight text-black truncate">
                     {t.solutions.training}
@@ -646,13 +749,43 @@ export default function SolutionsPage() {
                 initial={{ opacity: 0, y: 8 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-20px" }}
-                transition={{ duration: 0.35, delay: 0.1 }}
-                className="flex flex-col items-center text-center gap-1 p-2 sm:p-2.5 rounded-lg text-black [&_path]:fill-black"
+                className="relative flex flex-col items-center text-center gap-1 p-2 sm:p-2.5 rounded-lg text-black cursor-pointer active:scale-95"
+                onClick={activateDefense}
+                animate={
+                  circlesRevealed
+                    ? { scale: 1 }
+                    : { scale: [1, 1.06, 1] }
+                }
+                transition={
+                  circlesRevealed
+                    ? { duration: 0.25 }
+                    : {
+                        opacity: { duration: 0.35, delay: 0.1 },
+                        y: { duration: 0.35, delay: 0.1 },
+                        scale: {
+                          duration: 1.6,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        },
+                      }
+                }
               >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100 text-black [&_path]:fill-black">
-                  <DefenseIcon />
+                {!circlesRevealed && (
+                  <motion.span
+                    aria-hidden
+                    className="absolute inset-0 rounded-lg border-2 border-amber-400/55 pointer-events-none"
+                    animate={{ opacity: [0.3, 0.8, 0.3] }}
+                    transition={{
+                      duration: 1.6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                )}
+                <div className="relative z-[1]">
+                  <SolutionOptionIcon icon={Shield} variant="mobile" />
                 </div>
-                <div className="min-w-0">
+                <div className="relative z-[1] min-w-0">
                   <div className="font-bold text-[10px] sm:text-xs leading-tight text-black truncate">
                     {t.solutions.defense}
                   </div>
@@ -664,7 +797,13 @@ export default function SolutionsPage() {
             </div>
           </div>
           {/* الدائرة الدوارة والحلول حولها — موبايل */}
-          <div className="w-full flex items-center justify-center flex-1 min-h-0 py-16 sm:py-20 pb-20 sm:pb-24 overflow-visible">
+          <motion.div
+            className="w-full flex items-center justify-center flex-1 min-h-0 py-16 sm:py-20 pb-20 sm:pb-24 overflow-visible"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: circlesRevealed ? 1 : 0 }}
+            transition={CIRCLES_FADE_IN_TRANSITION}
+            style={{ pointerEvents: circlesRevealed ? "auto" : "none" }}
+          >
             <div className="relative mx-auto w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] flex-shrink-0">
               {/* حاوية ثابتة للتمركز — motion يستبدل transform فيلغي translate إن وُضعا على نفس العنصر */}
               <div className="absolute left-1/2 top-1/2 z-[5] flex h-[100px] w-[100px] -translate-x-1/2 -translate-y-1/2 items-center justify-center sm:h-[120px] sm:w-[120px]">
@@ -672,7 +811,7 @@ export default function SolutionsPage() {
                   className="h-full w-full origin-center"
                   animate={{ rotate: 360 }}
                   transition={{
-                    duration: 32,
+                    duration: MAIN_RING_DURATION,
                     repeat: Infinity,
                     ease: "linear",
                   }}
@@ -689,13 +828,13 @@ export default function SolutionsPage() {
                   className="h-full w-full origin-center"
                   animate={{ rotate: -360 }}
                   transition={{
-                    duration: 32,
+                    duration: MAIN_RING_DURATION,
                     repeat: Infinity,
                     ease: "linear",
                   }}
                 >
                   <img
-                    src={ROTATING_CIRCLE_URL}
+                    src={ROTATING_CIRCLE_WITHOUT_URL}
                     alt=""
                     className="h-full w-full object-contain"
                   />
@@ -718,7 +857,7 @@ export default function SolutionsPage() {
                     className="absolute inset-0 w-full h-full"
                     animate={{ rotate: 360 }}
                     transition={{
-                      duration: 8,
+                      duration: ORBIT_RING_DURATION_MOBILE.space,
                       repeat: Infinity,
                       ease: "linear",
                     }}
@@ -753,7 +892,7 @@ export default function SolutionsPage() {
                     className="absolute inset-0 w-full h-full"
                     animate={{ rotate: -360 }}
                     transition={{
-                      duration: 10,
+                      duration: ORBIT_RING_DURATION_MOBILE.air,
                       repeat: Infinity,
                       ease: "linear",
                     }}
@@ -788,7 +927,7 @@ export default function SolutionsPage() {
                     className="absolute inset-0 w-full h-full"
                     animate={{ rotate: 360 }}
                     transition={{
-                      duration: 12,
+                      duration: ORBIT_RING_DURATION_MOBILE.land,
                       repeat: Infinity,
                       ease: "linear",
                     }}
@@ -823,7 +962,7 @@ export default function SolutionsPage() {
                     className="absolute inset-0 w-full h-full"
                     animate={{ rotate: -360 }}
                     transition={{
-                      duration: 11,
+                      duration: ORBIT_RING_DURATION_MOBILE.maritime,
                       repeat: Infinity,
                       ease: "linear",
                     }}
@@ -858,7 +997,7 @@ export default function SolutionsPage() {
                     className="absolute inset-0 w-full h-full"
                     animate={{ rotate: 360 }}
                     transition={{
-                      duration: 9,
+                      duration: ORBIT_RING_DURATION_MOBILE.cyber,
                       repeat: Infinity,
                       ease: "linear",
                     }}
@@ -886,7 +1025,7 @@ export default function SolutionsPage() {
                 </span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

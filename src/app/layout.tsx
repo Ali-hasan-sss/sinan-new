@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { SeoJsonLd } from "./SeoJsonLd";
+import { FaviconTheme } from "@/components/FaviconTheme";
 import {
-  FAVICON_PATH,
+  FAVICON_DARK_PATH,
+  FAVICON_LIGHT_PATH,
   getSiteUrl,
   OG_IMAGE_PATH,
   SEO_DESCRIPTION_EN,
@@ -48,11 +50,18 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: FAVICON_PATH, sizes: "32x32", type: "image/png" },
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      {
+        url: FAVICON_DARK_PATH,
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: FAVICON_LIGHT_PATH,
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
     ],
-    shortcut: FAVICON_PATH,
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: FAVICON_LIGHT_PATH, type: "image/png" }],
   },
   openGraph: {
     type: "website",
@@ -87,7 +96,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          rel="icon"
+          type="image/png"
+          href={FAVICON_DARK_PATH}
+          media="(prefers-color-scheme: dark)"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          href={FAVICON_LIGHT_PATH}
+          media="(prefers-color-scheme: light)"
+        />
+      </head>
       <body className="antialiased">
+        <FaviconTheme />
         <SeoJsonLd />
         <div id="sinan-root" className="sinan-app-shell">
           <Providers>{children}</Providers>

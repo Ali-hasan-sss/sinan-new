@@ -44,5 +44,9 @@ export const SEO_KEYWORDS_AR = [
 ];
 
 export const OG_IMAGE_PATH = "/logo/logo_english_ondark.png";
-/** شعار الموقع (رمز الماسة) — يُولَّد أيضاً في src/app/icon.png */
-export const FAVICON_PATH = "/icon.png";
+/** أيقونة التبويب — ثيم فاتح */
+export const FAVICON_LIGHT_PATH = "/logo/black_corsur_logo.png";
+/** أيقونة التبويب — ثيم غامق */
+export const FAVICON_DARK_PATH = "/logo/white_corsur_logo.png";
+/** افتراضي للـ manifest وغيره */
+export const FAVICON_PATH = FAVICON_LIGHT_PATH;

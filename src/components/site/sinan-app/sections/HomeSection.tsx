@@ -80,65 +80,135 @@ export function HomeSection({
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const desktopHeroShellClass =
+    "absolute inset-y-0 left-0 right-0 flex justify-center overflow-hidden pointer-events-none";
+
   return (
     <section
       ref={assignSectionRef("home")}
       id="home"
+      dir="ltr"
       className="h-[calc(100vh-50px)] snap-start snap-always flex-shrink-0 overflow-hidden relative isolate bg-gray-950"
     >
+      {/* Layer 1: background */}
+      <div
+        className={
+          isMobileHero
+            ? "absolute inset-0 pointer-events-none"
+            : desktopHeroShellClass
+        }
+        style={{ zIndex: 1 }}
+      >
+        <div
+          className={
+            isMobileHero ? "absolute inset-0 overflow-hidden" : "relative h-full w-[110vw] max-w-none shrink-0"
+          }
+        >
+        {isMobileHero ? (
+          <>
+            <img
+              src={`${"/"}hero-mobile.svg`}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </>
+        ) : (
+          <div
+            className="absolute inset-0"
+            aria-hidden
+            style={{
+              backgroundColor: "#08080A",
+              backgroundImage: `url(${"/"}hero-bg.png)`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              transform: "scaleY(-1)",
+            }}
+          />
+        )}
+        </div>
+      </div>
+
+      {/* Layer 2: center logo */}
+      <div
+        className={`absolute inset-0 flex flex-col items-center justify-center ${SINAN_SITE_PX} min-h-0 pointer-events-none`}
+        style={{ zIndex: 2 }}
+      >
+        <motion.div
+          initial={false}
+          className="pointer-events-none flex flex-col items-center justify-center"
+          animate={
+            sectionInViewHome
+              ? {
+                  opacity: 1,
+                  scale: [0.92, 1, 1.07, 1, 1.04, 1],
+                }
+              : { opacity: 0, scale: 0.92 }
+          }
+          transition={{
+            opacity: { duration: 0.5 },
+            scale: sectionInViewHome
+              ? {
+                  duration: 1.4,
+                  times: [0, 0.35, 0.5, 0.65, 0.82, 1],
+                  ease: "easeOut",
+                }
+              : { duration: 0.3 },
+          }}
+        >
+          <div
+            className="flex flex-col items-center justify-center"
+            aria-hidden
+          >
+            <div className="flex flex-col items-center justify-center">
+              <img
+                src={`${"/"}logo/logo_${locale === "ar" ? "arabice" : "english"}_ondark.png`}
+                alt="Sinan Advanced Industries"
+                className="h-40 sm:h-52 md:h-80 lg:h-96 xl:h-[28rem] 2xl:h-[32rem] 3xl:h-[34rem] 4xl:h-[36rem] w-auto max-h-[85dvh] select-none object-contain"
+                draggable={false}
+              />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Layer 3: interactive triangles (above logo) */}
       <div
         ref={heroSvgRef}
         className={
           isMobileHero
             ? "absolute inset-0 pointer-events-none"
-            : "absolute inset-0 pointer-events-none md:inset-y-0 md:left-1/2 md:w-[110vw] md:max-w-none md:-translate-x-1/2"
+            : desktopHeroShellClass
         }
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 8 }}
       >
-        <div className="absolute inset-0 w-full h-full">
-          {isMobileHero ? (
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-              <img
-                src={`${"/"}hero-mobile.svg`}
-                alt=""
-                aria-hidden
-                draggable={false}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            </div>
-          ) : (
-            <div
-              className="absolute inset-0 z-0 pointer-events-none"
-              aria-hidden
-              style={{
-                backgroundColor: "#08080A",
-                backgroundImage: `url(${"/"}hero-bg.png)`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                transform: "scaleY(-1)",
-              }}
+        <div
+          className={
+            isMobileHero
+              ? "absolute inset-0 w-full h-full pointer-events-auto"
+              : "relative h-full w-[110vw] max-w-none shrink-0"
+          }
+        >
+        <div
+          className="absolute inset-0 w-full h-full pointer-events-auto"
+          onMouseLeave={() => setHeroHoveredTriangleId(null)}
+        >
+          {typeof LayerHome === "function" ? (
+            <LayerHome
+              hideGrayRect
+              trianglesOnly
+              customTriangles={activeTriangles}
+              hitAreaOnly={isMobileHero}
+              viewBoxWidth={activeViewBoxWidth}
+              viewBoxHeight={activeViewBoxHeight}
+              flipY={!isMobileHero}
+              onTriangleHoverChange={setHeroHoveredTriangleId}
+              onTriangleClick={scrollToSection}
             />
-          )}
-
-          <div
-            className="absolute inset-0 z-[1] w-full h-full pointer-events-auto"
-            onMouseLeave={() => setHeroHoveredTriangleId(null)}
-          >
-            {typeof LayerHome === "function" ? (
-              <LayerHome
-                hideGrayRect
-                trianglesOnly
-                customTriangles={activeTriangles}
-                hitAreaOnly={isMobileHero}
-                viewBoxWidth={activeViewBoxWidth}
-                viewBoxHeight={activeViewBoxHeight}
-                flipY={!isMobileHero}
-                onTriangleHoverChange={setHeroHoveredTriangleId}
-                onTriangleClick={scrollToSection}
-              />
-            ) : null}
-          </div>
+          ) : null}
+        </div>
         </div>
       </div>
 
@@ -207,47 +277,6 @@ export function HomeSection({
         );
       })()}
 
-      <div
-        className={`absolute inset-0 flex flex-col items-center justify-center ${SINAN_SITE_PX} min-h-0 pointer-events-none`}
-        style={{ zIndex: 10 }}
-      >
-        <motion.div
-          initial={false}
-          className="pointer-events-auto flex flex-col items-center justify-center"
-          animate={
-            sectionInViewHome
-              ? {
-                  opacity: 1,
-                  scale: [0.92, 1, 1.07, 1, 1.04, 1],
-                }
-              : { opacity: 0, scale: 0.92 }
-          }
-          transition={{
-            opacity: { duration: 0.5 },
-            scale: sectionInViewHome
-              ? {
-                  duration: 1.4,
-                  times: [0, 0.35, 0.5, 0.65, 0.82, 1],
-                  ease: "easeOut",
-                }
-              : { duration: 0.3 },
-          }}
-        >
-          <div
-            className="flex flex-col items-center justify-center"
-            aria-hidden
-          >
-            <div className="flex flex-col items-center justify-center">
-              <img
-                src={`${"/"}logo/logo_${locale === "ar" ? "arabice" : "english"}_ondark.png`}
-                alt="Sinan Advanced Industries"
-                className="h-40 sm:h-52 md:h-80 lg:h-96 xl:h-[28rem] 2xl:h-[32rem] 3xl:h-[34rem] 4xl:h-[36rem] w-auto max-h-[85dvh] select-none object-contain"
-                draggable={false}
-              />
-            </div>
-          </div>
-        </motion.div>
-      </div>
     </section>
   );
 }
